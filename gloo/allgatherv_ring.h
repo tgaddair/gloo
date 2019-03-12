@@ -33,9 +33,7 @@ public:
       : Algorithm(context),
         inPtrs_(inPtrs),
         outPtr_(outPtr),
-        counts_(std::move(counts)),
-        leftPair_(this->getLeftPair()),
-        rightPair_(this->getRightPair()) {
+        counts_(std::move(counts)) {
     bytes_.resize(counts_.size());
     displacements_.resize(counts_.size());
     int offset = 0;
@@ -47,15 +45,22 @@ public:
       totalBytes += bytes_[i] * inPtrs_.size();
     }
 
+    if (this->contextSize_ == 1) {
+      return;
+    }
+
+    auto& leftPair = this->getLeftPair();
+    auto& rightPair = this->getRightPair();
     auto slot = this->context_->nextSlot();
-    sendDataBuf_ = rightPair_->createSendBuffer(slot, outPtr_, totalBytes);
-    recvDataBuf_ = leftPair_->createRecvBuffer(slot, outPtr_, totalBytes);
+
+    sendDataBuf_ = rightPair->createSendBuffer(slot, outPtr_, totalBytes);
+    recvDataBuf_ = leftPair->createRecvBuffer(slot, outPtr_, totalBytes);
 
     auto notificationSlot = this->context_->nextSlot();
     sendNotificationBuf_ =
-        leftPair_->createSendBuffer(notificationSlot, &dummy_, sizeof(dummy_));
+        leftPair->createSendBuffer(notificationSlot, &dummy_, sizeof(dummy_));
     recvNotificationBuf_ =
-        rightPair_->createRecvBuffer(notificationSlot, &dummy_, sizeof(dummy_));
+        rightPair->createRecvBuffer(notificationSlot, &dummy_, sizeof(dummy_));
   }
 
   virtual ~AllgathervRing() {}
@@ -99,9 +104,6 @@ private:
   const std::vector<int> counts_;
   std::vector<size_t> bytes_;
   std::vector<int> displacements_;
-
-  std::unique_ptr<transport::Pair>& leftPair_;
-  std::unique_ptr<transport::Pair>& rightPair_;
 
   std::unique_ptr<transport::Buffer> sendDataBuf_;
   std::unique_ptr<transport::Buffer> recvDataBuf_;

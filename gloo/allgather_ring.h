@@ -35,21 +35,25 @@ class AllgatherRing : public Algorithm {
         outPtr_(outPtr),
         count_(count),
         bytes_(count * sizeof(T)),
-        inputStride_(count_ * inPtrs_.size()),
-        leftPair_(this->getLeftPair()),
-        rightPair_(this->getRightPair()) {
+        inputStride_(count_ * inPtrs_.size()) {
+    if (this->contextSize_ == 1) {
+      return;
+    }
+
+    auto& leftPair = this->getLeftPair();
+    auto& rightPair = this->getRightPair();
     auto slot = this->context_->nextSlot();
 
-    sendDataBuf_ = rightPair_->createSendBuffer(
+    sendDataBuf_ = rightPair->createSendBuffer(
         slot, outPtr_, inPtrs_.size() * context_->size * bytes_);
-    recvDataBuf_ = leftPair_->createRecvBuffer(
+    recvDataBuf_ = leftPair->createRecvBuffer(
         slot, outPtr_, inPtrs_.size() * context_->size * bytes_);
 
     auto notificationSlot = this->context_->nextSlot();
     sendNotificationBuf_ =
-        leftPair_->createSendBuffer(notificationSlot, &dummy_, sizeof(dummy_));
+        leftPair->createSendBuffer(notificationSlot, &dummy_, sizeof(dummy_));
     recvNotificationBuf_ =
-        rightPair_->createRecvBuffer(notificationSlot, &dummy_, sizeof(dummy_));
+        rightPair->createRecvBuffer(notificationSlot, &dummy_, sizeof(dummy_));
   }
 
   virtual ~AllgatherRing() {}
@@ -93,9 +97,6 @@ class AllgatherRing : public Algorithm {
   const int count_;
   const int bytes_;
   const int inputStride_;
-
-  std::unique_ptr<transport::Pair>& leftPair_;
-  std::unique_ptr<transport::Pair>& rightPair_;
 
   std::unique_ptr<transport::Buffer> sendDataBuf_;
   std::unique_ptr<transport::Buffer> recvDataBuf_;
