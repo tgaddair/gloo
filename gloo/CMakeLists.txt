@@ -23,6 +23,7 @@ list(APPEND GLOO_HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithm.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/allgather.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/allgather_ring.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/allgatherv_ring.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/allreduce.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/allreduce_bcube.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/allreduce_halving_doubling.h"
